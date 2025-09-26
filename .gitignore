@@ -1,0 +1,26 @@
+# ===========================
+# Archivos y carpetas a ignorar en Git
+# ===========================
+
+# Variables de entorno (nunca subir este archivo)
+.env
+
+# Cachés de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+zavira/
+
+# Archivos de configuración locales
+*.sqlite3
+*.log
+
+# Configuración de IDEs (opcional)
+.vscode/
+.idea/
