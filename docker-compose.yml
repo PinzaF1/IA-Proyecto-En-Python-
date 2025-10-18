@@ -1,0 +1,58 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11435:11434"
+    environment:
+      - OLLAMA_KEEP_ALIVE=8m
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "ps"]
+      interval: 10s
+      timeout: 5s
+      start_period: 120s
+      retries: 60
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-lc"]
+    command: "ollama pull qwen2.5:7b-instruct || true"
+    volumes:
+      - ollama:/root/.ollama
+    restart: "no"
+
+  eduexcel-api:
+    container_name: eduexcel-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - PORT=8000
+      - APP_MODULE=EduExcel:app
+    depends_on:
+      ollama:
+        condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+volumes:
+  ollama:
